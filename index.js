@@ -1,8 +1,8 @@
 'use strict';
 
-var gutil       = require('gulp-util');
-var through     = require('through2');
-var path        = require('path');
+var gutil = require('gulp-util');
+var through = require('through2');
+var path = require('path');
 var PluginError = gutil.PluginError;
 
 function keyChain(key, functionArgs) {
@@ -18,7 +18,7 @@ function keyChain(key, functionArgs) {
     case '_ex':
     case 'esc_attr_x':
     case 'esc_html_x':
-      return 'context_' + functionArgs[1] +  functionArgs[0];
+      return 'context_' + functionArgs[1] + functionArgs[0];
     case '_n':
     case '_n_noop':
       return 'multiple_' + functionArgs[1] + functionArgs[0];
@@ -29,12 +29,12 @@ function keyChain(key, functionArgs) {
 }
 
 function findTranslations(file, domain) {
-  var lines             = file.contents.toString().split('\n');
+  var lines = file.contents.toString().split('\n');
   var patternFunctionCalls = /(__|_e|esc_attr__|esc_attr_e|esc_html__|esc_html_e|_x|_ex|esc_attr_x|esc_html_x|_n|_n_noop|_nx|_nx_noop)\s*\(/g;
-  var translations                 = [];
+  var translations = [];
   var functionCall;
 
-  lines.forEach(function(line, lineNumber) {
+  lines.forEach(function (line, lineNumber) {
     while ((functionCall = patternFunctionCalls.exec(line))) {
       if (functionCall[0]) {
         var functionArgs = [];
@@ -119,8 +119,8 @@ function transToPot(orig) {
   // Merge duplicate
   var buffer = {};
 
-  orig.forEach(function(file) {
-    file.forEach(function(translation) {
+  orig.forEach(function (file) {
+    file.forEach(function (translation) {
       if (buffer[translation.keyChain]) {
         buffer[ translation.keyChain ].info += ', ' + translation.info;
       } else {
@@ -200,12 +200,12 @@ function gulpWPpot(options) {
     options.package = options.domain;
   }
 
-  var buffer   = [];
+  var buffer = [];
   var destFile = options.destFile;
-  var destDir  = path.dirname(destFile);
+  var destDir = path.dirname(destFile);
 
   // creating a stream through which each file will pass
-  var stream = through.obj(function(file, enc, cb) {
+  var stream = through.obj(function (file, enc, cb) {
 
     if (file.isStream()) {
       throw new PluginError('gulp-wp-pot', 'Streams are not supported.');
@@ -219,7 +219,7 @@ function gulpWPpot(options) {
     }
 
     cb();
-  }, function(cb) {
+  }, function (cb) {
 
     //Headers
     var year = new Date().getFullYear();
@@ -244,6 +244,23 @@ function gulpWPpot(options) {
 
     if (options.team) {
       contents += '"Language-Team: ' + options.team + '\\n"\n\n';
+    }
+    if (options.poEdit) {
+
+      // If keywordsList not set, use defaults
+      if (options.poEdit.keywordsList) {
+        contents += '"X-Poedit-KeywordsList: ' + options.poEdit.keywordsList + '\\n"\n';
+      } else {
+        contents += '"X-Poedit-KeywordsList: __;_e;esc_attr__;esc_attr_e;esc_html__;esc_html_e;_x;_ex;esc_attr_x;esc_html_x;_n;_n_noop;_nx;_nx_noop\\n"\n';
+      }
+
+      if (options.poEdit.basePath) {
+        contents += '"X-Poedit-Basepath: ' + options.poEdit.basePath + '\\n"\n';
+      }
+
+      if (options.poEdit.searchPath) {
+        contents += '"X-Poedit-SearchPath-0: ' + options.poEdit.searchPath + '\\n"\n\n';
+      }
     }
 
     contents += '"Plural-Forms: nplurals=2; plural=(n != 1);\\n\\n"\n\n';
